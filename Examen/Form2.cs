@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -26,17 +27,37 @@ namespace Examen
 
         private void button1_Click(object sender, EventArgs e)
         {
-            Alumno alumno = new Alumno(int.Parse(textBox1.Text), textBox2.Text, textBox3.Text, int.Parse(textBox4.Text), "");
-            if (crud.ExisteAlumnoConDni(alumno.Dni))
+            try
             {
-                MessageBox.Show("Ya existe un alumno con ese DNI");
+                string Calificacion = "";
+                Calificacion = int.Parse(textBox4.Text) switch
+                {
+                    < 5 => "SS",
+                    >= 5 and < 7 => "AP",
+                    >= 7 and < 9 => "NT",
+                    >= 9 and <= 10 => "SB",
+                    > 10 => throw new ArgumentOutOfRangeException("La nota no puede ser mayor a 10")
+                };
+                Alumno alumno = new Alumno(int.Parse(textBox1.Text), textBox2.Text, textBox3.Text, 
+                    int.Parse(textBox4.Text), Calificacion); // Crear un nuevo objeto Alumno
+
+                if (crud.ExisteAlumnoConDni(alumno.Dni))
+                {
+                    MessageBox.Show("Ya existe un alumno con ese DNI");
+                    return;
+                }
+                else
+                {
+                    crud.Agregar(alumno);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al agregar el alumno: " + ex.Message);
                 return;
             }
-            else
-            {
-                crud.Agregar(alumno);
-            }
-            
+
+
 
             // Dispara el evento para que Form1 actualice el ComboBox
             AlumnoAgregado?.Invoke();
